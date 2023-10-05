@@ -9,7 +9,6 @@ class KeyValuePair {
 }
 
 class HashTable {
-
   constructor(numBuckets = 4) {
     this.count = 0
     this.capacity = numBuckets
@@ -32,13 +31,30 @@ class HashTable {
   }
 
   insertWithHashCollisions(key, value) {
-    // Your code here
+    const pair = new KeyValuePair(key, value)
+    const index = this.hashMod(key)
+    pair.next = this.data[index]
+    this.data[index] = pair
+    this.count++
   }
-
+  
   insert(key, value) {
-    // Your code here
+    let index = this.hashMod(key)
+    let current = this.data[index]
+    while(current) {
+      if(current.key === key) break
+      current = current.next
+    }
+    
+    if(current) {
+      current.value = value
+    } else {
+      const pair = new KeyValuePair(key, value)
+      pair.next = this.data[index]
+      this.data[index] = pair
+      this.count++
+    }
   }
-
 }
 
 
