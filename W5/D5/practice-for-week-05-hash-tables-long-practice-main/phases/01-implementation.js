@@ -9,12 +9,9 @@ class KeyValuePair {
 class HashTable { // get O(1), set O(1), deleteKey O(1)
 
   constructor(numBuckets = 8) {
-    // Initialize your buckets here
-    // Your code here
     this.count = 0
     this.capacity = numBuckets
     this.data = new Array(numBuckets).fill(null)
-    this.keys = new Set()
   }
 
   hash(key) {
@@ -34,51 +31,71 @@ class HashTable { // get O(1), set O(1), deleteKey O(1)
 
 
   insert(key, value) {
-    const idx = this.hashMod(key)
-    const kvp = new KeyValuePair(key, value)
-    if(this.keys.has(key)) {
-      let override
-      for(const pair of this.data) {
-        if(pair.key === key) return override=pair
-        let next = pair.next
-        while(next) {
-          if(next.key === key) return override=next
-          next = pair.next
-        }
-      }
-      override.value = value
-      
+    const index = this.hashMod(key)
+    let current = this.data[index]
+    while(current) {
+      if(current.key === key) break
+      current = current.next
     }
-    if(this.data[idx]) kvp.next = this.data[idx]
-    this.data[idx] = kvp
-    this.count++
-    this.keys.add(key)
+    
+    if(current) {
+      current.value = value
+    } else {
+      const pair = new KeyValuePair(key, value)
+      pair.next = this.data[index]
+      this.data[index] = pair
+      this.count++
+    }
   }
 
 
   read(key) {
-    // for (const pair of this.data) {
-    //   if(pair.key === key) return pair
-    //   let next = pair.next
-    //   while(next) {
-    //     if(next.key === key) return next
-    //     next = pair.next
-    //   }
-    // }
-    // return false
+    const index = this.hashMod(key)
+    let pair = this.data[index]
+    if(pair && pair.key === key) return pair.value
+
+    while(pair) {
+      if(!pair) continue
+      if(pair.key === key) return pair.value
+      pair = pair.next
+    }
+
+    return undefined
   }
 
 
   resize() {
-    this.data = [...this.data, ...new Array(this.capacity).fill(null)]
+    let resize = this.data
     this.capacity *= 2
+    this.data = new Array(this.capacity).fill(null)
+    for (let i = 0; i < resize.length; i++) {
+      if(!resize[i]) continue
+      let pair = resize[i]
+      while(pair) {
+        if(!pair) continue
+        this.insert(pair.key, pair.value)
+        this.count--
+        pair = pair.next
+      }
+    }
   }
 
 
   delete(key) {
-    // Your code here
+    if(!this.read(key)) return 'Key not found'
+
+    const index = this.hashMod(key)
+    let pair = this.data[index]
+    
+    if(pair && pair.key === key) this.data[index] = pair?.next || null
+
+    while(pair) {
+      if(pair.next?.key === key) pair.next = pair.next?.next || null
+      pair = pair.next
+    }
+
+    this.count--
   }
 }
-
 
 module.exports = HashTable;
